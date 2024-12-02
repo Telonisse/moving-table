@@ -12,8 +12,6 @@ def rotateServo(pin, angle):
     board.digital[pin].write(angle)
     sleep(0.015)
     
-
-    #hej
 while True:
     for i in range(0,180):
         rotateServo(pin, i)
