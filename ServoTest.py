@@ -8,37 +8,6 @@ board = Arduino(port)
 servo_pin = 9
 board.digital[servo_pin].mode = SERVO
 
-# Global flag to control the servo
-servo_running = False
-
-def rotate_servo_continuous(pin):
-    """
-    Rotates the servo continuously by sweeping back and forth.
-    Runs while the global flag servo_running is True.
-    """
-    global servo_running
-    while servo_running:
-        for angle in range(0, 180):
-            if not servo_running:
-                break
-            board.digital[pin].write(angle)
-            sleep(0.015)
-        for angle in range(180, -1, -1):
-            if not servo_running:
-                break
-            board.digital[pin].write(angle)
-            sleep(0.015)
-
-from pyfirmata import Arduino, SERVO
-from time import sleep
-import threading
-
-# Arduino setup
-port = '/dev/ttyACM0'  # Replace with your port
-board = Arduino(port)
-servo_pin = 9
-board.digital[servo_pin].mode = SERVO
-
 # Global flag and thread reference
 servo_running = False
 servo_thread = None
