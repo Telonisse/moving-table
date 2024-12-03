@@ -1,4 +1,5 @@
 from pyfirmata import Arduino, SERVO
+import threading
 from time import sleep
 
 # Arduino setup
@@ -7,46 +8,67 @@ board = Arduino(port)
 servo_pin = 9
 board.digital[servo_pin].mode = SERVO
 
-# Servo control state
+# Global flag and thread reference
 servo_running = False
+servo_thread = None
 
-def rotate_servo_continuous(pin):
+def run_servo(pin):
     """
-    Continuously rotates the servo back and forth.
+    Keeps the servo running at 90 degrees while the global flag `servo_running` is True.
+    """
+    while servo_running:
+        board.digital[pin].write(90)  # Set to 90 degrees (constant forward motion)
+        sleep(0.015)
+
+def start_servo():
+    """
+    Starts the servo in a separate thread.
+    """
+    global servo_running, servo_thread
+    if not servo_running:
+        print("Starting servo...")
+        servo_running = True
+        servo_thread = threading.Thread(target=run_servo, args=(servo_pin,), daemon=True)
+        servo_thread.start()
+    else:
+        print("Servo is already running.")
+
+def stop_servo():
+    """
+    Stops the servo.
     """
     global servo_running
-    while servo_running:
-        for angle in range(0, 180):
-            if not servo_running:
-                break
-            board.digital[pin].write(angle)
-            sleep(0.015)
-        for angle in range(180, -1, -1):
-            if not servo_running:
-                break
-            board.digital[pin].write(angle)
-            sleep(0.015)
+    if servo_running:
+        print("Stopping servo...")
+        servo_running = False
+        if servo_thread:
+            servo_thread.join()  # Wait for the thread to finish
+        board.digital[servo_pin].write(0)  # Stop the servo
+    else:
+        print("Servo is already stopped.")
 
+def servo_control():
+    """
+    Control loop for starting and stopping the servo based on user input.
+    """
+    while True:
+        command = input("Enter 'start' to run servo, 'stop' to stop, or 'exit' to quit: ").strip().lower()
+        if command == "start":
+            start_servo()
+        elif command == "stop":
+            stop_servo()
+        elif command == "exit":
+            print("Exiting program...")
+            stop_servo()
+            break
+        else:
+            print("Invalid command.")
+
+# Main program
 if __name__ == "__main__":
     try:
-        print("Enter 'start' to run servo, 'stop' to stop, or 'exit' to quit.")
-        while True:
-            command = input("Command: ").strip().lower()
-            if command == "start" and not servo_running:
-                print("Starting servo...")
-                servo_running = True
-                rotate_servo_continuous(servo_pin)
-            elif command == "stop" and servo_running:
-                print("Stopping servo...")
-                servo_running = False
-                board.digital[servo_pin].write(90)  # Neutral position
-            elif command == "exit":
-                print("Exiting program...")
-                servo_running = False
-                board.digital[servo_pin].write(90)
-                break
-            else:
-                print("Invalid or redundant command.")
+        servo_control()
     finally:
+        stop_servo()
         board.exit()
         print("Cleaned up and exited.")
