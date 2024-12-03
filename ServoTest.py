@@ -12,6 +12,14 @@ board.digital[servo_pin].mode = SERVO
 servo_running = False
 servo_thread = None
 
+def on_start():
+    """
+    Initial setup for the servo. Sets it to 90 degrees.
+    """
+    print("Initializing servo...")
+    board.digital[servo_pin].write(90)  # Set servo to neutral position
+    sleep(0.5)  # Allow some time for the servo to reach the position
+
 def run_servo(pin):
     """
     Keeps the servo running at 90 degrees while the global flag `servo_running` is True.
@@ -67,6 +75,7 @@ def servo_control():
 # Main program
 if __name__ == "__main__":
     try:
+        on_start()  # Initialize the servo position
         servo_control()
     finally:
         stop_servo()
