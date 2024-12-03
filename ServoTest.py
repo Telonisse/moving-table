@@ -17,7 +17,7 @@ def run_servo(pin):
     Keeps the servo running at 90 degrees while the global flag `servo_running` is True.
     """
     while servo_running:
-        board.digital[pin].write(90)  # Set to 90 degrees (constant forward motion)
+        board.digital[pin].write(0)  # Set to 90 degrees (constant forward motion)
         sleep(0.015)
 
 def start_servo():
@@ -43,7 +43,7 @@ def stop_servo():
         servo_running = False
         if servo_thread:
             servo_thread.join()  # Wait for the thread to finish
-        board.digital[servo_pin].write(0)  # Stop the servo
+        board.digital[servo_pin].write(90)  # Stop the servo
     else:
         print("Servo is already stopped.")
 
